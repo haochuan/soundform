@@ -34,10 +34,11 @@ App.osc = {
     },
 
     _connectNodes: function() {
-        this.osc = this._createOSCNode('sine', 240);
+        this.osc = this._createOSCNode('triangle', 240);
         this.analyser = this._createAnalyserNode();
-        this.analyser.fftSize = 2048;
-        this.frequencyData = new Uint8Array(this.analyser.frequencyBinCount);
+        this.analyser.fftSize = 1024;
+        this.analyser.smoothingTimeConstant = 0.3;
+        this.frequencyData = new Uint8Array(this.analyser.frequencyBinCount); // half of the fftSize
         this.gain = this._createGainNode();
         this.osc.connect(this.gain);
         this.gain.connect(this.analyser);
@@ -50,7 +51,7 @@ App.osc = {
 $(document).ready(function() {
     var canvas = $('#canvas')[0];
     canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight - 100;
+    canvas.height = window.innerHeight
     paper.setup(canvas);
     App.osc.init();
     // var myPath = new Path();
@@ -64,20 +65,22 @@ $(document).ready(function() {
     // App.Paper.path.closed = true;
     // App.Paper.path.add(new Point(100, 100));
     // App.Paper.path.add(new Point(500, 100));
+    var fixedWidth = window.innerWidth / (App.osc.analyser.fftSize / 2);
     for (var i = 0; i < App.osc.analyser.fftSize; i++) {
-        var segment = App.Paper.path.add(new Point(i, 500));
+        var segment = App.Paper.path.add(new Point(i * fixedWidth, window.innerHeight / 2));
     }
     App.Paper.path.smooth();
 
     function updatePath() {
         App.osc.analyser.getByteTimeDomainData(App.osc.frequencyData);
+        // var fixedWidth = window.innerWidth / App.osc.frequencyData.length;
         // console.log(App.osc.frequencyData.length);
         for (var i = 0; i < App.osc.frequencyData.length; i++) {
             var point = App.Paper.path.segments[i].point;
-            point.y = App.osc.frequencyData[i] + 80;
+            point.y = App.osc.frequencyData[i];
         }
         // App.Paper.path.position.y = 300;
-        App.Paper.path.smooth();
+        // App.Paper.path.smooth();
     }
     // var start = new paper.Point(100, 100);
     // Move to start and draw a line from there
