@@ -44,7 +44,7 @@ App.osc = {
         this.gain.connect(this.analyser);
         // this.gain.connect(this.context.destination);
         this.analyser.connect(this.context.destination);
-        this.osc.start(0);
+        // this.osc.start(0);
     }
 };
 
@@ -54,14 +54,25 @@ function respondCanvas() {
     timeDomainCanvas.attr('height', timeDomainCanvas.parent().height());
 }
 
+function resetTimeDomainCanvas() {
+    var timeDomaincanvas = $('#timeDomainCanvas')[0];
+    var fixedWidth = timeDomaincanvas.width / (App.osc.analyser.fftSize / 2);
+    for (var i = 0; i < App.osc.analyser.fftSize / 2; i++) {
+        var point = App.Paper.path.segments[i].point;
+        // point.x = point.x / 2;
+        point.y = 300 / 4;
+    }
+    App.Paper.path.smooth();
+}
+
 $(document).ready(function() {
+    App.osc.init();
     respondCanvas();
     $(window).resize(respondCanvas);
     var timeDomaincanvas = $('#timeDomainCanvas')[0];
     // canvas.width  = window.innerWidth;
     // canvas.height = 300;
     paper.setup(timeDomaincanvas);
-    App.osc.init();
     // var myPath = new Path();
     // myPath.strokeColor = 'black';
     // myPath.add(new Point(0, 0));
@@ -106,4 +117,32 @@ $(document).ready(function() {
         // App.osc.analyser.getByteFrequencyData(App.osc.frequencyData)
         // console.log(App.osc.frequencyData);
     }
+    $('#switch').click(function(e) {
+        if ($(this).prop('checked')) {
+            var type = $('input[name="type"]:checked').val();
+            if (type) {
+                App.osc.osc.type = type;
+                var f = $('#freq').val();
+                App.osc.osc.frequency.value = f;
+                App.osc.osc.start(0);
+            } else {
+                alert('Please select the oscillator type first!');
+            }
+        } else {
+            App.osc.osc.stop(0);
+            App.osc.init();
+        }
+    });
+    $('input[name="type"]').on('change', function(e) {
+        var type = $(this).filter(function(index) {
+            return $(this).prop('checked');
+        }).val();
+        App.osc.osc.type = type;
+    });
+
+    $('#freq').on('change', function(e) {
+        var f = $(this).val();
+        console.log(f);
+        App.osc.osc.frequency.value = f;
+    });
 });
