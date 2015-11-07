@@ -36,7 +36,7 @@ App.osc = {
     _connectNodes: function() {
         this.osc = this._createOSCNode('triangle', 240);
         this.analyser = this._createAnalyserNode();
-        this.analyser.fftSize = 1024;
+        this.analyser.fftSize = 2048;
         this.analyser.smoothingTimeConstant = 0.3;
         this.frequencyData = new Uint8Array(this.analyser.frequencyBinCount); // half of the fftSize
         this.gain = this._createGainNode();
@@ -48,11 +48,19 @@ App.osc = {
     }
 };
 
+function respondCanvas() {
+    var timeDomainCanvas = $('#timeDomainCanvas')
+    timeDomainCanvas.attr('width', timeDomainCanvas.parent().width());
+    timeDomainCanvas.attr('height', timeDomainCanvas.parent().height());
+}
+
 $(document).ready(function() {
-    var canvas = $('#canvas')[0];
-    canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight
-    paper.setup(canvas);
+    respondCanvas();
+    $(window).resize(respondCanvas);
+    var timeDomaincanvas = $('#timeDomainCanvas')[0];
+    // canvas.width  = window.innerWidth;
+    // canvas.height = 300;
+    paper.setup(timeDomaincanvas);
     App.osc.init();
     // var myPath = new Path();
     // myPath.strokeColor = 'black';
@@ -65,9 +73,9 @@ $(document).ready(function() {
     // App.Paper.path.closed = true;
     // App.Paper.path.add(new Point(100, 100));
     // App.Paper.path.add(new Point(500, 100));
-    var fixedWidth = window.innerWidth / (App.osc.analyser.fftSize / 2);
-    for (var i = 0; i < App.osc.analyser.fftSize; i++) {
-        var segment = App.Paper.path.add(new Point(i * fixedWidth, window.innerHeight / 2));
+    var fixedWidth = timeDomaincanvas.width / (App.osc.analyser.fftSize / 2);
+    for (var i = 0; i < App.osc.analyser.fftSize / 2; i++) {
+        var segment = App.Paper.path.add(new Point(i * fixedWidth, 300 / 4));
     }
     App.Paper.path.smooth();
 
@@ -77,7 +85,8 @@ $(document).ready(function() {
         // console.log(App.osc.frequencyData.length);
         for (var i = 0; i < App.osc.frequencyData.length; i++) {
             var point = App.Paper.path.segments[i].point;
-            point.y = App.osc.frequencyData[i];
+            // point.x = point.x / 2;
+            point.y = App.osc.frequencyData[i] / 2;
         }
         // App.Paper.path.position.y = 300;
         // App.Paper.path.smooth();
@@ -91,7 +100,7 @@ $(document).ready(function() {
     // Draw the view now:
     // paper.view.draw();
     view.onFrame = function(event) {
-        if (event.count % 10 === 0) {
+        if (event.count % 4 === 0) {
             updatePath();
         }
         // App.osc.analyser.getByteFrequencyData(App.osc.frequencyData)
