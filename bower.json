@@ -1,0 +1,12 @@
+{
+  "name": "soundform",
+  "version": "0.0.0",
+  "authors": [
+    "Haochuan Liu <haochuan.liu@gmail.com>"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "paper": "~0.9.25",
+    "materialize": "~0.97.1"
+  }
+}
