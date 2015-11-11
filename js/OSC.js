@@ -51,8 +51,11 @@ App.osc = {
  */
 function respondCanvas() {
     var timeDomainCanvas = $('#timeDomainCanvas')
+    var freqDomainCanvas = $('#freqDomainCanvas')
     timeDomainCanvas.attr('width', timeDomainCanvas.parent().width());
     timeDomainCanvas.attr('height', timeDomainCanvas.parent().height());
+    freqDomainCanvas.attr('width', freqDomainCanvas.parent().width());
+    freqDomainCanvas.attr('height', freqDomainCanvas.parent().height());
 }
 /**
  * Update the time domain canvas
@@ -69,9 +72,31 @@ function drawTimeDomain() {
         var percent = value / 512;
         var height = HEIGHT * percent;
         var offset = HEIGHT - height - 1;
-        var barWidth = WIDTH / (App.osc.analyser.fftSize / 2);
+        var barWidth = WIDTH / App.osc.analyser.frequencyBinCount;
         timeDomainCanvasContext.fillStyle = 'black';
         timeDomainCanvasContext.fillRect(i * barWidth, offset, 1, 1);
+    }
+}
+
+/**
+ * Update the frequency domain canvas
+ */
+function drawFreqDomain() {
+    var freqDomainCanvas = document.getElementById('freqDomainCanvas');
+    var HEIGHT = freqDomainCanvas.height;
+    var WIDTH = freqDomainCanvas.width;
+    var freqDomainCanvasContext = freqDomainCanvas.getContext('2d');
+    freqDomainCanvasContext.clearRect(0, 0, WIDTH, HEIGHT); // clear the current canvas
+    App.osc.analyser.getByteFrequencyData(App.osc.frequencyData);
+    for (var i = 0; i < App.osc.frequencyData.length; i++) {
+        var value = App.osc.frequencyData[i];
+        var percent = value / 512;
+        var height = HEIGHT * percent;
+        var offset = HEIGHT - height - 1;
+        var barWidth = WIDTH / App.osc.analyser.frequencyBinCount;
+        var hue = i / App.osc.analyser.frequencyBinCount * 360;
+        freqDomainCanvasContext.fillStyle = 'hsl(' + hue + ', 100%, 50%)';
+        freqDomainCanvasContext.fillRect(i * barWidth, offset, barWidth, height);
     }
 }
 
@@ -84,6 +109,7 @@ $(document).ready(function() {
     function updateCanvas() {
         requestAnimationFrame(updateCanvas);
         drawTimeDomain();
+        drawFreqDomain();
     }
 
     $('#switch').click(function(e) {
