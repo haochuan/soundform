@@ -137,7 +137,6 @@ $(document).ready(function() {
 
     $('#freq').on('change', function(e) {
         var f = $(this).val();
-        console.log(f);
         App.osc.osc.frequency.value = f;
     });
 });
