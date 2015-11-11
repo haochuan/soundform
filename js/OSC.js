@@ -1,6 +1,4 @@
 var App = App || {};
-App.Paper = {};
-paper.install(window);
 
 App.osc = {
     context: null,
@@ -39,6 +37,7 @@ App.osc = {
         this.analyser.fftSize = 2048;
         this.analyser.smoothingTimeConstant = 0.3;
         this.frequencyData = new Uint8Array(this.analyser.frequencyBinCount); // half of the fftSize
+        this.timeData = new Uint8Array(this.analyser.frequencyBinCount); // half of the fftSize
         this.gain = this._createGainNode();
         this.osc.connect(this.gain);
         this.gain.connect(this.analyser);
@@ -47,76 +46,46 @@ App.osc = {
         // this.osc.start(0);
     }
 };
-
+/**
+ * Adjust the canvas width and height based on its parent
+ */
 function respondCanvas() {
     var timeDomainCanvas = $('#timeDomainCanvas')
     timeDomainCanvas.attr('width', timeDomainCanvas.parent().width());
     timeDomainCanvas.attr('height', timeDomainCanvas.parent().height());
 }
-
-function resetTimeDomainCanvas() {
-    var timeDomaincanvas = $('#timeDomainCanvas')[0];
-    var fixedWidth = timeDomaincanvas.width / (App.osc.analyser.fftSize / 2);
-    for (var i = 0; i < App.osc.analyser.fftSize / 2; i++) {
-        var point = App.Paper.path.segments[i].point;
-        // point.x = point.x / 2;
-        point.y = 300 / 4;
+/**
+ * Update the time domain canvas
+ */
+function drawTimeDomain() {
+    var timeDomainCanvas = document.getElementById('timeDomainCanvas');
+    var HEIGHT = timeDomainCanvas.height;
+    var WIDTH = timeDomainCanvas.width;
+    var timeDomainCanvasContext = timeDomainCanvas.getContext('2d');
+    timeDomainCanvasContext.clearRect(0, 0, WIDTH, HEIGHT); // clear the current canvas
+    App.osc.analyser.getByteTimeDomainData(App.osc.timeData);
+    for (var i = 0; i < App.osc.timeData.length; i++) {
+        var value = App.osc.timeData[i];
+        var percent = value / 512;
+        var height = HEIGHT * percent;
+        var offset = HEIGHT - height - 1;
+        var barWidth = WIDTH / (App.osc.analyser.fftSize / 2);
+        timeDomainCanvasContext.fillStyle = 'black';
+        timeDomainCanvasContext.fillRect(i * barWidth, offset, 1, 1);
     }
-    App.Paper.path.smooth();
 }
 
 $(document).ready(function() {
     App.osc.init();
     respondCanvas();
     $(window).resize(respondCanvas);
-    var timeDomaincanvas = $('#timeDomainCanvas')[0];
-    // canvas.width  = window.innerWidth;
-    // canvas.height = 300;
-    paper.setup(timeDomaincanvas);
-    // var myPath = new Path();
-    // myPath.strokeColor = 'black';
-    // myPath.add(new Point(0, 0));
-    // myPath.add(new Point(100, 50));
-    App.Paper.path = new Path();
-    // Give the stroke a color
-    App.Paper.path.strokeColor = 'black';
-    // App.Paper.path.fillColor = 'black';
-    // App.Paper.path.closed = true;
-    // App.Paper.path.add(new Point(100, 100));
-    // App.Paper.path.add(new Point(500, 100));
-    var fixedWidth = timeDomaincanvas.width / (App.osc.analyser.fftSize / 2);
-    for (var i = 0; i < App.osc.analyser.fftSize / 2; i++) {
-        var segment = App.Paper.path.add(new Point(i * fixedWidth, 300 / 4));
-    }
-    App.Paper.path.smooth();
+    updateCanvas();
 
-    function updatePath() {
-        App.osc.analyser.getByteTimeDomainData(App.osc.frequencyData);
-        // var fixedWidth = window.innerWidth / App.osc.frequencyData.length;
-        // console.log(App.osc.frequencyData.length);
-        for (var i = 0; i < App.osc.frequencyData.length; i++) {
-            var point = App.Paper.path.segments[i].point;
-            // point.x = point.x / 2;
-            point.y = App.osc.frequencyData[i] / 2;
-        }
-        // App.Paper.path.position.y = 300;
-        // App.Paper.path.smooth();
+    function updateCanvas() {
+        requestAnimationFrame(updateCanvas);
+        drawTimeDomain();
     }
-    // var start = new paper.Point(100, 100);
-    // Move to start and draw a line from there
-    // path.moveTo(start);
-    // Note that the plus operator on Point objects does not work
-    // in JavaScript. Instead, we need to call the add() function:
-    // path.lineTo(start.add([ 200, -50 ]));
-    // Draw the view now:
-    // paper.view.draw();
-    view.onFrame = function(event) {
-        if (event.count % 4 === 0) {
-            updatePath();
-        }
-        // App.osc.analyser.getByteFrequencyData(App.osc.frequencyData)
-        // console.log(App.osc.frequencyData);
-    }
+
     $('#switch').click(function(e) {
         if ($(this).prop('checked')) {
             var type = $('input[name="type"]:checked').val();
