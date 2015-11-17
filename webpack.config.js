@@ -1,7 +1,7 @@
 module.exports = {
     context: __dirname + '/src',
     entry: {
-        javascript: './main.js',
+        javascript: './main',
         html: './index.html'
     },
 
@@ -17,9 +17,13 @@ module.exports = {
                 loader: 'file?name=[name].[ext]'
             },
             {
-              test: /\.js$/,
-              exclude: /node_modules/,
-              loaders: ["react-hot", "babel-loader"],
+                test: /\.js$/,
+                exclude: /node_modules/,
+                loaders: ['babel-loader']
+            },
+            {
+                test: /\.jsx$/,
+                loaders: ['babel-loader']
             },
             {
               test: /\.css$/, // Only .css files
@@ -28,4 +32,4 @@ module.exports = {
 
         ]
     }
-}
+};
