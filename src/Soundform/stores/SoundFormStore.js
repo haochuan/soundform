@@ -1,49 +1,43 @@
 import { Store, toImmutable } from 'nuclear-js';
-import randomString from 'randomstring';
-
-const audioContext = initAudioContext();
+import {
+    PLAY,
+    STOP,
+    CHNAGE_TYPE,
+    CHNAGE_FREQ,
+    DRAW_TIMEDOMAIN,
+    DRAW_FREQDOMAIN
+} from '../actionTypes';
 
 export default Store({
     getInitialState() {
+        this._connectNodes();
         return toImmutable({});
     },
 
     initialize() {
-        this.on(PLAY, play);
-        this.on(STOP, updateNode);
-        this.on(CHANGE_FREQ, deleteNode);
-        this.on(CHANGE_TYPE, deleteNode);
+        this.on(PLAY, this._play);
+        // this.on(STOP, updateNode);
+        // this.on(CHANGE_FREQ, deleteNode);
+        // this.on(CHANGE_TYPE, deleteNode);
     },
 
-    initAudioContext() {
-        try {
-            // Fix up for prefixing
-            window.AudioContext = window.AudioContext||window.webkitAudioContext;
-            let audioContext = new AudioContext();
-        } catch(e) {
-            alert('Web Audio API is not supported in this browser');
-        }
-
-        return audioContext;
-    },
-
-    _createOSCNode: function(audioContext, type, freq) {
+    _createOSCNode: function(type, freq) {
         let osc = audioContext.createOscillator();
         osc.frequency.value = freq;
         osc.type = type;
         return osc;
     },
 
-    _createGainNode: function(audioContext) {
+    _createGainNode: function() {
         return audioContext.createGain();
     },
 
-    _createAnalyserNode: function(audioContext) {
+    _createAnalyserNode: function() {
         return audioContext.createAnalyser();
     },
 
-    _connectNodes: function(audioContext) {
-        this.osc = this._createOSCNode('triangle', 240);
+    _connectNodes: function() {
+        this.osc = this._createOSCNode('sine', 440);
         this.analyser = this._createAnalyserNode();
         this.analyser.fftSize = 2048;
         this.analyser.smoothingTimeConstant = 0.3;
@@ -53,22 +47,11 @@ export default Store({
         this.osc.connect(this.gain);
         this.gain.connect(this.analyser);
         // this.gain.connect(this.context.destination);
-        this.analyser.connect(this.context.destination);
+        this.analyser.connect(audioContext.destination);
         // this.osc.start(0);
+    },
+
+    _play: function() {
+        this.osc.start(0);
     }
 });
-
-function initAudioContext() {
-    try {
-        // Fix up for prefixing
-        window.AudioContext = window.AudioContext||window.webkitAudioContext;
-        let audioContext = new AudioContext();
-    } catch(e) {
-        alert('Web Audio API is not supported in this browser');
-    }
-    return audioContext;
-}
-
-function play() {
-
-}
