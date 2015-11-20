@@ -13,6 +13,15 @@
     <!-- Compiled and minified JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.2/js/materialize.min.js"></script>
     <link rel="stylesheet" type="text/css" href="style.css">
+    <script>
+        try {
+            // Fix up for prefixing
+            window.AudioContext = window.AudioContext||window.webkitAudioContext;
+            window.audioContext = new AudioContext();
+        } catch(e) {
+            alert('Web Audio API is not supported in this browser');
+        }
+    </script>
 </head>
 <body>
     <div id="react"></div>

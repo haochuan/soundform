@@ -7,6 +7,14 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+(function initAudioContext() {
+    try {
+        // Fix up for prefixing
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    } catch (e) {
+        alert('Web Audio API is not supported in this browser');
+    }
+})();
 // import Soundfrom from 'Soundform/';
 var ai = 1;
 
